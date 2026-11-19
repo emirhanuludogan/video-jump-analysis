@@ -1,8 +1,12 @@
-# Biyomekanik Sıçrama Analizi
+# Video Tabanlı Sıçrama Analizi
 
-Video üzerinden kişi tespiti ve MediaPipe poz tahminini birleştirerek sıçrama
-metriklerini inceleyen Python tabanlı staj projesi. Amaç, farklı dedektörlerin
-aynı analiz zincirindeki etkisini karşılaştırmak ve ölçüm hatalarını araştırmaktır.
+Standart kamera kayıtlarından sıçrama performansını incelemek için geliştirilen
+Python tabanlı staj projesi. Kişi tespiti ve MediaPipe poz tahmini kullanılarak
+kalça yer değiştirmesi, uçuş süresi ve yerle temas süresi hesaplanır.
+
+Çalışmanın odağı, farklı kişi dedektörlerinin aynı analiz zincirindeki etkisini
+karşılaştırmak; kalibrasyon, hareket evreleri ve kamera kaynaklı ölçüm hatalarını
+incelemektir. Proje deneysel bir analiz uygulamasıdır.
 
 **Durum:** Deneysel geliştirme. CMJ, Squat Jump, Abalakov, tek bacak ve Drop Jump
 için test seçenekleri bulunur; her seçenek için doğrulanmış ölçüm başarımı gösterilmemiştir.
@@ -83,7 +87,7 @@ beklemesinin GCT'ye karışması ayrıca incelenmelidir.
 
 ## İlgili proje ve lisans
 
-[CMJ karşılaştırma reposu](https://github.com/emirhanuludogan/cmj-reliability-test)
+[CMJ karşılaştırma reposu](https://github.com/emirhanuludogan/cmj-camera-comparison)
 ön/yan kamera kayıtlarını ve manuel Kinovea referanslarını ayrı bir çalışma olarak ele alır.
 
 Depoda mevcut [LICENSE](LICENSE) dosyası korunur. Üçüncü taraf kod, model
