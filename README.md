@@ -1,44 +1,90 @@
 # Biyomekanik Sıçrama Analizi
 
-Bu repo, standart kamera görüntüleri üzerinden açık kaynaklı nesne tespiti ve poz tahmini modelleri kullanarak sporcuların sıçrama performanslarını ölçen biyomekanik bir analiz sistemidir. Sistem CMJ, Squat Jump (SJ), Abalakov, Tek Bacak ve Drop Jump testlerini desteklerken, Kütle Merkezi (CoM) takibini uçuş süresi formülleri yerine doğrudan sakrum noktasının yer değiştirmesi üzerinden hesaplayarak "Tuck Effect" yanılgısını ortadan kaldırır.
+Video üzerinden kişi tespiti ve MediaPipe poz tahminini birleştirerek sıçrama
+metriklerini inceleyen Python tabanlı staj projesi. Amaç, farklı dedektörlerin
+aynı analiz zincirindeki etkisini karşılaştırmak ve ölçüm hatalarını araştırmaktır.
 
-### Kapsamlı Test Sonuçları (RTX 4050 & i7-13700H | 32 GB RAM)
+**Durum:** Deneysel geliştirme. CMJ, Squat Jump, Abalakov, tek bacak ve Drop Jump
+için test seçenekleri bulunur; her seçenek için doğrulanmış ölçüm başarımı gösterilmemiştir.
 
-Aşağıdaki tablo, yapay zeka modellerinin 240/120 FPS manuel Kinovea ölçümlerine kıyasla gösterdiği CoM doğruluk paylarını listelemektedir. 
+## Nasıl çalışıyor?
 
-| Test Tipi | Model Adı | Gerçek CoM | AI CoM | Hata Payı |
-| :--- | :--- | :--- | :--- | :--- |
-| Video 1 - CMJ | RT-DETR v1 (S) | 44,61 cm | 45 cm | 0,39 cm |
-| Video 1 - CMJ | RT-DETRv2 (S) | 44,61 cm | 45,1 cm | 0,49 cm |
-| Video 1 - CMJ | RT-DETR (L) | 44,61 cm | 45,5 cm | 0,89 cm |
-| Video 1 - CMJ | D-FINE (S) | 44,61 cm | 45,7 cm | 1,09 cm |
-| Video 1 - CMJ | MediaPipe | 44,61 cm | 46,1 cm | 1,49 cm |
-| Video 1 - CMJ | RT-DETR (L) | 44,61 cm | 46,9 cm | 2,29 cm |
-| Video 2 - SJ | RT-DETRv2 (S) | 70,84 cm | 69,5 cm | 1,34 cm |
-| Video 2 - SJ | D-FINE (S) | 70,84 cm | 69,3 cm | 1,54 cm |
-| Video 2 - SJ | RT-DETR v1 (S) | 70,84 cm | 69,2 cm | 1,64 cm |
-| Video 2 - SJ | RT-DETR (L) | 70,84 cm | 69,2 cm | 1,64 cm |
-| Video 2 - SJ | RT-DETR (L) | 70,84 cm | 69,2 cm | 1,64 cm |
-| Video 2 - SJ | MediaPipe | 70,84 cm | 69 cm | 1,84 cm |
-| Video 3 - Abalakov | RT-DETR (L) | 61,76 cm | 60,3 cm | 1,46 cm |
-| Video 3 - Abalakov | D-FINE (S) | 61,76 cm | 51 cm | 10,76 cm |
-| Video 3 - Abalakov | RT-DETRv2 (S) | 61,76 cm | 50,9 cm | 10,86 cm |
-| Video 3 - Abalakov | RT-DETR (L) | 61,76 cm | 50,9 cm | 10,86 cm |
-| Video 3 - Abalakov | MediaPipe | 61,76 cm | 50,7 cm | 11,06 cm |
-| Video 3 - Abalakov | RT-DETR v1 (S) | 61,76 cm | 50,3 cm | 11,46 cm |
-| Video 4 - Drop Jump | RT-DETRv2 (S) | 66,87 cm | 24,5 cm | 42,37 cm |
-| Video 4 - Drop Jump | MediaPipe | 66,87 cm | 24,4 cm | 42,47 cm |
-| Video 4 - Drop Jump | RT-DETR (L) | 66,87 cm | 24,2 cm | 42,67 cm |
-| Video 4 - Drop Jump | RT-DETR v1 (S) | 66,87 cm | 24 cm | 42,87 cm |
-| Video 4 - Drop Jump | D-FINE (S) | 66,87 cm | 23,7 cm | 43,17 cm |
-| Video 5 - Tek Bacak | RT-DETRv2 (S) | 25,42 cm | 28,3 cm | 2,88 cm |
-| Video 5 - Tek Bacak | D-FINE (S) | 25,42 cm | 28,4 cm | 2,98 cm |
-| Video 5 - Tek Bacak | RT-DETR v1 (S) | 25,42 cm | 28,5 cm | 3,08 cm |
-| Video 5 - Tek Bacak | RT-DETR (L) | 25,42 cm | 28,7 cm | 3,28 cm |
-| Video 5 - Tek Bacak | MediaPipe | 25,42 cm | 28,9 cm | 3,48 cm |
+Video → kişi dedektörü → kişi bölgesinde MediaPipe Pose → görüntü koordinatlarına
+dönüşüm → kalça yer değiştirmesi, uçuş süresi ve Drop Jump temas süresi → rapor.
 
-**Hız ve Diğer Mühendislik Bulguları**
-* **FPS ve İşlem Süresi:** Tüm modeller kare başına ortalama 35,47 ms ile 52,17 ms arasında işlem süresi sergilemiş olup, genel donanım hızı 19,17 FPS ile 28,19 FPS aralığında gerçekleşmiştir.
-* **Algoritmik Hata Tespitleri:**
-  * **Drop Jump Temas Süresi (GCT):** Başlangıç kutusunun zemin sayılması ve statik beklemenin reaktif sürelere dahil edilmesi sebebiyle, referansı 359 ms olan GCT değerleri AI tarafından ~1900 ms civarında saptanarak 42 cm'lik istikrarlı bir referans sapmasına yol açmıştır.
-  * **Abalakov Savrulması:** Kolların serbest kullanımından kaynaklanan bounding box kaymaları, 120 FPS'lik referans çekim haricindeki tüm standart 60 FPS modellerde 10-11 cm aralığında net bir hizalama bozulması yaratmıştır.
+Dedektör seçenekleri MediaPipe, YOLOv8 Nano, Ultralytics RT-DETR-L, RT-DETR v1/v2,
+D-FINE ve DEIM'dir. Dedektör değişse de sonraki poz tahmini MediaPipe ile yapılır.
+Bu nedenle dedektör karşılaştırması, farklı poz modellerinin karşılaştırılması değildir.
+
+## Hesaplanan değerler
+
+| Değer | Uygulama | Dikkat edilmesi gereken |
+| --- | --- | --- |
+| Kalça yer değiştirmesi | Sol/sağ kalçanın ortalaması, başlangıca göre en büyük yükselme | Bütün vücut kütle merkezi değildir |
+| Santimetre karşılığı | Piksel farkı × cm/piksel ölçeği | Varsayılan `0.19230` her video için geçerli değildir |
+| Uçuş süresi | Temas eşiğine göre havada sayılan kareler / FPS | Ayak noktaları ve eşik seçimine bağlıdır |
+| Uçuştan yükseklik | `g*t²/8` | Kalkış/iniş yüksekliği varsayımına bağlı ayrı bir tahmindir |
+| GCT | Temas kareleri / FPS; Drop Jump seçeneğinde | Bekleme ve kutu üstündeki temas ayrıca ayrıştırılmalıdır |
+| İşlem performansı | Tespit oranı, kare başına süre ve işleme FPS'i | İşleme FPS'i videonun kayıt FPS'i değildir |
+
+Kodda “CoM” adı geçen kalça sinyali ile uçuştan hesaplanan yükseklik farklı
+ölçümlerdir; raporda birbirlerinin yerine kullanılmamalıdır.
+
+## Kurulum ve ilk çalıştırma
+
+Mevcut yerel ortam Python 3.10.11 kullanır. Bağımlılık listesi ve temiz kurulum
+henüz standartlaştırılmadı. [Kurulum notu](docs/SETUP.md) mevcut durumu açıklar.
+
+Mevcut `jump_env` ortamınız hazırsa PowerShell'de repo kökünden:
+
+```powershell
+.\jump_env\Scripts\python.exe jump_demo.py
+```
+
+Masaüstü arayüzünde video ve test türünü seçin. İlk incelemede MediaPipe
+seçeneğiyle başlayabilirsiniz; diğer dedektörler ek kaynak kod ve ağırlık ister.
+Örnek video adları yerel dosyalara işaret eder; kendi videonuzu dosya seçiciden açabilirsiniz.
+
+Kalça ve segment hesaplarını aynı poz kaydı üzerinden karşılaştıran yerel arayüz:
+
+```powershell
+.\jump_env\Scripts\python.exe jump_comparison_ui.py
+```
+
+Bu karşılaştırma Python'a ek olarak Node.js ister. Bu arayüzler mevcut yerel
+geliştirmelerdir; aynı dosyalar GitHub ana dalında henüz bulunmayabilir.
+
+## Dosya rehberi
+
+| Dosya | Görevi |
+| --- | --- |
+| `jump_analyzer.py` | Dedektör yönlendirmesi ve ana analiz zinciri |
+| `com_analyzer.py` | Kalça yer değiştirmesi ve cm/piksel ölçeği |
+| `flight_time_analyzer.py` | Uçuş ve sabit duruş takibi |
+| `gct_analyzer.py` | Temas süresi hesabı |
+| `report_generator.py` | Metin raporu; aynı hedef dosyanın üzerine yazar |
+| `kalibrasyon.py` | İlk karede iki noktayla manuel ölçek denemesi |
+| `jump_demo.py` | Yerel video analizi için masaüstü arayüzü |
+| `jump_comparison.py`, `jump_comparison_ui.py` | Aynı poz verisiyle hesap karşılaştırması ve CSV |
+| `jump_comparison.mjs`, `jump_com_web.mjs` | Karşılaştırmanın JavaScript hesapları |
+| `docs/SETUP.md` | Ortam, model kaynakları ve veri düzeni |
+| `docs/ROADMAP.md` | Düzenleme ve doğrulama sırası |
+
+## Sonuçlar ve sınırlılıklar
+
+Önceki GitHub açıklaması ve sonuç tablosu
+[arşivde](docs/onceki-github-readme.md) korunur. O tablodaki sonuçlar bu düzenlemede
+yeniden üretilmedi; yinelenen model etiketleri ve ölçüm tanımlarının açıklığa
+kavuşturulması gerekir. Güncel doğruluk veya model sıralaması olarak sunulmaz.
+
+Sabit piksel eşikleri, ilk 15 kareden alınan başlangıç konumu, kamera perspektifi,
+örtüşme ve yanlış zemin seçimi ölçümleri etkileyebilir. Drop Jump başlangıç
+beklemesinin GCT'ye karışması ayrıca incelenmelidir.
+
+## İlgili proje ve lisans
+
+[CMJ karşılaştırma reposu](https://github.com/emirhanuludogan/cmj-reliability-test)
+ön/yan kamera kayıtlarını ve manuel Kinovea referanslarını ayrı bir çalışma olarak ele alır.
+
+Depoda mevcut [LICENSE](LICENSE) dosyası korunur. Üçüncü taraf kod, model
+ağırlıkları ve veriler için ilgili kaynakların kendi lisansları ayrıca incelenmelidir.

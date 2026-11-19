@@ -1,8 +1,21 @@
 jump_env/
-   weight/
-   *.pt
-   *.pth
-   *.mov
-   *.mp4
-   __pycache__/
-   .DS_Store
+venv/
+.venv/
+weight/
+*.pt
+*.pth
+*.mov
+*.mp4
+__pycache__/
+*.py[cod]
+.vs/
+.idea/
+.env
+.DS_Store
+Thumbs.db
+
+# Yerel üretilen rapor ve yanlışlıkla oluşturulmuş boş dosyalar
+/test_sonuclari.txt
+/0
+/cd
+/Lütfen
